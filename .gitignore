@@ -1,6 +1,13 @@
 # Configurazione locale dell'anteprima (non serve online)
 .claude/
 
+# Sorgente LaTeX del CV e file ausiliari (nel sito pubblichiamo solo il PDF)
+*.tex
+*.aux
+*.log
+*.out
+*.synctex.gz
+
 # File di sistema
 Thumbs.db
 .DS_Store
