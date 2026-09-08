@@ -1,0 +1,6 @@
+# Configurazione locale dell'anteprima (non serve online)
+.claude/
+
+# File di sistema
+Thumbs.db
+.DS_Store
