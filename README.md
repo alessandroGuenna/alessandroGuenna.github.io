@@ -1,45 +1,46 @@
 # Portfolio — Alessandro Guenna
 
-Sito portfolio personale (ingegneria energetica, MATLAB & Python).
-Sito statico: solo HTML, CSS e un po' di JavaScript. Nessun framework, nessuna build.
+Personal portfolio website (energy engineering, MATLAB & Python).
+Static site: plain HTML, CSS and a little JavaScript. No framework, no build.
 
-## Struttura dei file
+## File structure
 
-| File            | A cosa serve                                             |
+| File            | Purpose                                                  |
 |-----------------|----------------------------------------------------------|
-| `index.html`    | Contenuti del sito (testi, progetti, sezioni)            |
-| `styles.css`    | Aspetto grafico (colori, font, layout)                   |
-| `script.js`     | Piccole interazioni (menu mobile, anno nel footer)       |
-| `.claude/`      | Configurazione per l'anteprima locale                    |
+| `index.html`    | Site content (text, projects, sections)                  |
+| `styles.css`    | Look and feel (colours, fonts, layout)                   |
+| `script.js`     | Small interactions (mobile menu, year in the footer)     |
+| `projects/`     | Project detail pages and their assets                    |
+| `.claude/`      | Local preview configuration                              |
 
-## Come modificare i contenuti
+## Editing the content
 
-Quasi tutto quello che vorrai cambiare è in `index.html`:
+Almost everything you may want to change is in `index.html`:
 
-- **Nome / testi**: cerca "Alessandro Guenna" e i vari paragrafi.
-- **Progetti**: ogni progetto è un blocco `<article class="project-card">`.
-  Duplica un blocco per aggiungerne uno nuovo, poi cambia titolo, descrizione,
-  tag e i link `href="#"` (metti l'URL del repository GitHub).
-- **Link GitHub / LinkedIn**: cerca `tuo-username` e `tuo-profilo` e sostituiscili.
-- **CV**: cerca `id="cv-link"` e metti il percorso del tuo PDF (es. `cv.pdf`).
+- **Name / text**: search for "Alessandro Guenna" and the various paragraphs.
+- **Projects**: each project is an `<article class="project-card">` block.
+  Duplicate a block to add a new one, then change title, description, tags and
+  the `href` links (point them to the GitHub repository).
+- **GitHub / LinkedIn links**: search for the URLs and replace them.
+- **CV**: search for `id="cv-link"` and set the path of your PDF.
 
-Per cambiare i colori: in `styles.css`, in alto, la variabile `--accent`
-controlla il colore verde d'accento.
+To change the colours: in `styles.css`, near the top, the `--accent` variable
+controls the accent colour.
 
-## Anteprima in locale
+## Local preview
 
-Serve Python installato. Dalla cartella del progetto:
+Python required. From the project folder:
 
 ```bash
 python -m http.server 5173
 ```
 
-Poi apri `http://localhost:5173` nel browser.
+Then open `http://localhost:5173` in your browser.
 
-## Pubblicazione (GitHub Pages)
+## Publishing (GitHub Pages)
 
-1. Crea un repository su GitHub (es. `portfolio`).
-2. Carica questi file nel repository.
-3. Settings → Pages → Source: branch `main`, cartella `/root`.
-4. Il sito sarà online su `https://alessandroguenna.github.io/portfolio/`.
-5. (Opzionale) Collega un dominio personalizzato aggiungendo un file `CNAME`.
+1. This site is published from the `alessandroGuenna.github.io` repository.
+2. Push the files to the `main` branch.
+3. Settings → Pages → Source: branch `main`, folder `/root`.
+4. The site goes live at `https://alessandroguenna.github.io/`.
+5. (Optional) Connect a custom domain by adding a `CNAME` file.

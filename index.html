@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alessandro Guenna — Ingegnere Energetico</title>
-  <meta name="description" content="Portfolio di Alessandro Guenna, ingegnere energetico. Progetti di modellazione, simulazione e analisi dati con MATLAB e Python." />
+  <title>Alessandro Guenna — Energy Engineer</title>
+  <meta name="description" content="Portfolio of Alessandro Guenna, energy engineer. Personal projects in modelling, simulation and data analysis with MATLAB and Python." />
 
-  <!-- Open Graph (anteprima quando condividi il link) -->
-  <meta property="og:title" content="Alessandro Guenna — Ingegnere Energetico" />
-  <meta property="og:description" content="Progetti di ingegneria energetica con MATLAB e Python." />
+  <!-- Open Graph (link preview) -->
+  <meta property="og:title" content="Alessandro Guenna — Energy Engineer" />
+  <meta property="og:description" content="Energy engineering projects with MATLAB and Python." />
   <meta property="og:type" content="website" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,20 +17,20 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- ===== Header / Navigazione ===== -->
+  <!-- ===== Header / Navigation ===== -->
   <header class="site-header" id="top">
     <nav class="nav container">
       <a href="#top" class="nav__brand">AG<span class="nav__brand-dot">.</span></a>
 
-      <button class="nav__toggle" aria-label="Apri menu" aria-expanded="false">
+      <button class="nav__toggle" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
 
       <ul class="nav__links">
-        <li><a href="#progetti">Progetti</a></li>
-        <li><a href="#chi-sono">Chi sono</a></li>
-        <li><a href="#competenze">Competenze</a></li>
-        <li><a href="#contatti">Contatti</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#contact">Contact</a></li>
         <li><a href="https://github.com/alessandroGuenna" target="_blank" rel="noopener" class="nav__github">GitHub</a></li>
       </ul>
     </nav>
@@ -39,31 +39,31 @@
   <main>
     <!-- ===== Hero ===== -->
     <section class="hero container">
-      <p class="hero__eyebrow">Ingegnere Energetico</p>
+      <p class="hero__eyebrow">Energy Engineer</p>
       <h1 class="hero__title">
-        Trasformo dati e sistemi energetici<br />
-        in <span class="accent">modelli e soluzioni concrete</span>.
+        I turn data and energy systems<br />
+        into <span class="accent">concrete models and solutions</span>.
       </h1>
       <p class="hero__lead">
-        Ciao, sono Alessandro Guenna. Progetto, simulo e analizzo sistemi energetici
-        usando MATLAB e Python — dall'ottimizzazione dei consumi alla modellazione
-        di impianti e fonti rinnovabili.
+        Hi, I'm Alessandro Guenna. I design, simulate and analyse energy systems
+        using MATLAB and Python — from consumption optimisation to the modelling
+        of plants and renewable sources.
       </p>
       <div class="hero__actions">
-        <a href="#progetti" class="btn btn--primary">Vedi i progetti</a>
-        <a href="#contatti" class="btn btn--ghost">Contattami</a>
+        <a href="#projects" class="btn btn--primary">View projects</a>
+        <a href="#contact" class="btn btn--ghost">Get in touch</a>
       </div>
     </section>
 
-    <!-- ===== Progetti ===== -->
-    <section class="section container" id="progetti">
+    <!-- ===== Projects ===== -->
+    <section class="section container" id="projects">
       <div class="section__head">
-        <h2 class="section__title">Progetti</h2>
-        <p class="section__subtitle">Una selezione dei miei lavori personali di modellazione e analisi.</p>
+        <h2 class="section__title">Projects</h2>
+        <p class="section__subtitle">A selection of my personal work in modelling and analysis.</p>
       </div>
 
       <div class="projects">
-        <!-- Progetto 1 -->
+        <!-- Project 1 -->
         <article class="project-card">
           <div class="project-card__thumb" data-label="MATLAB"></div>
           <div class="project-card__body">
@@ -72,20 +72,20 @@
               <span class="tag">Simulink</span>
               <span class="tag">App Designer</span>
             </div>
-            <h3 class="project-card__title">Pannello di controllo microturbina (CHP)</h3>
+            <h3 class="project-card__title">Microturbine control panel (CHP)</h3>
             <p class="project-card__desc">
-              App interattiva che simula il quadro di controllo di una microturbina
-              cogenerativa da ~80 kW: modello termodinamico dinamico in Simulink,
-              mappe del compressore, turbina in choking e controllo a velocità variabile.
+              Interactive app simulating the control panel of a ~80 kW cogeneration
+              microturbine: dynamic thermodynamic model in Simulink, compressor
+              maps, choked turbine and variable-speed control.
             </p>
             <div class="project-card__links">
-              <a href="projects/microturbine/">Dettagli →</a>
-              <a href="projects/microturbine/microturbine-control-panel.zip" download>Scarica ZIP ↓</a>
+              <a href="projects/microturbine/">Details →</a>
+              <a href="projects/microturbine/microturbine-control-panel.zip" download>Download ZIP ↓</a>
             </div>
           </div>
         </article>
 
-        <!-- Progetto 2 -->
+        <!-- Project 2 -->
         <article class="project-card">
           <div class="project-card__thumb" data-label="PYTHON"></div>
           <div class="project-card__body">
@@ -94,143 +94,143 @@
               <span class="tag">pandas</span>
               <span class="tag">matplotlib</span>
             </div>
-            <h3 class="project-card__title">Analisi consumi energetici</h3>
+            <h3 class="project-card__title">Energy consumption analysis</h3>
             <p class="project-card__desc">
-              Pipeline di analisi dati per identificare pattern di consumo e sprechi
-              in edifici, con dashboard di visualizzazione e report automatici.
+              Data-analysis pipeline to identify consumption patterns and waste
+              in buildings, with a visualisation dashboard and automated reports.
             </p>
             <div class="project-card__links">
-              <a href="#" target="_blank" rel="noopener">Codice ↗</a>
-              <a href="#" target="_blank" rel="noopener">Dettagli →</a>
+              <a href="#" target="_blank" rel="noopener">Code ↗</a>
+              <a href="#" target="_blank" rel="noopener">Details →</a>
             </div>
           </div>
         </article>
 
-        <!-- Progetto 3 -->
+        <!-- Project 3 -->
         <article class="project-card">
           <div class="project-card__thumb" data-label="PYTHON"></div>
           <div class="project-card__body">
             <div class="project-card__tags">
               <span class="tag">Python</span>
               <span class="tag">NumPy</span>
-              <span class="tag">Ottimizzazione</span>
+              <span class="tag">Optimisation</span>
             </div>
-            <h3 class="project-card__title">Ottimizzazione mix energetico</h3>
+            <h3 class="project-card__title">Energy mix optimisation</h3>
             <p class="project-card__desc">
-              Algoritmo di ottimizzazione per bilanciare fonti rinnovabili e costi
-              in una micro-rete, minimizzando emissioni e spesa complessiva.
+              Optimisation algorithm to balance renewable sources and costs in a
+              micro-grid, minimising both emissions and overall expenditure.
             </p>
             <div class="project-card__links">
-              <a href="#" target="_blank" rel="noopener">Codice ↗</a>
-              <a href="#" target="_blank" rel="noopener">Dettagli →</a>
+              <a href="#" target="_blank" rel="noopener">Code ↗</a>
+              <a href="#" target="_blank" rel="noopener">Details →</a>
             </div>
           </div>
         </article>
 
-        <!-- Progetto 4 -->
+        <!-- Project 4 -->
         <article class="project-card">
           <div class="project-card__thumb" data-label="MATLAB"></div>
           <div class="project-card__body">
             <div class="project-card__tags">
               <span class="tag">MATLAB</span>
-              <span class="tag">Termodinamica</span>
+              <span class="tag">Thermodynamics</span>
             </div>
-            <h3 class="project-card__title">Modello scambiatore di calore</h3>
+            <h3 class="project-card__title">Heat exchanger model</h3>
             <p class="project-card__desc">
-              Simulazione termica di uno scambiatore di calore con analisi di
-              efficienza e studio parametrico delle condizioni operative.
+              Thermal simulation of a heat exchanger with efficiency analysis
+              and a parametric study of the operating conditions.
             </p>
             <div class="project-card__links">
-              <a href="#" target="_blank" rel="noopener">Codice ↗</a>
-              <a href="#" target="_blank" rel="noopener">Dettagli →</a>
+              <a href="#" target="_blank" rel="noopener">Code ↗</a>
+              <a href="#" target="_blank" rel="noopener">Details →</a>
             </div>
           </div>
         </article>
       </div>
     </section>
 
-    <!-- ===== Chi sono ===== -->
-    <section class="section section--alt" id="chi-sono">
+    <!-- ===== About ===== -->
+    <section class="section section--alt" id="about">
       <div class="container about">
         <div class="about__text">
-          <h2 class="section__title">Chi sono</h2>
+          <h2 class="section__title">About</h2>
           <p>
-            Sono un ingegnere energetico con la passione per la modellazione numerica
-            e l'analisi dei dati applicata all'energia. Mi piace tradurre problemi
-            complessi in modelli chiari, e trovare soluzioni efficienti e sostenibili.
+            I'm an energy engineer with a passion for numerical modelling and
+            data analysis applied to energy. I like turning complex problems into
+            clear models, and finding efficient, sustainable solutions.
           </p>
           <p>
-            Lavoro principalmente con <strong>MATLAB</strong> per simulazione e calcolo
-            scientifico e con <strong>Python</strong> per analisi dati, automazione e
-            visualizzazione. Questo portfolio raccoglie i miei progetti personali.
+            I work mainly with <strong>MATLAB</strong> for simulation and scientific
+            computing and with <strong>Python</strong> for data analysis, automation
+            and visualisation. This portfolio collects my personal projects.
           </p>
-          <a href="CV_alessandroGuenna.pdf" class="btn btn--ghost" id="cv-link" download>Scarica il CV (PDF)</a>
+          <a href="CV_alessandroGuenna.pdf" class="btn btn--ghost" id="cv-link" download>Download CV (PDF)</a>
         </div>
         <div class="about__facts">
           <div class="fact">
             <span class="fact__num">MATLAB</span>
-            <span class="fact__label">Simulazione &amp; calcolo</span>
+            <span class="fact__label">Simulation &amp; computing</span>
           </div>
           <div class="fact">
             <span class="fact__num">Python</span>
             <span class="fact__label">Data analysis</span>
           </div>
           <div class="fact">
-            <span class="fact__num">Energia</span>
-            <span class="fact__label">Rinnovabili &amp; efficienza</span>
+            <span class="fact__num">Energy</span>
+            <span class="fact__label">Renewables &amp; efficiency</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===== Competenze ===== -->
-    <section class="section container" id="competenze">
+    <!-- ===== Skills ===== -->
+    <section class="section container" id="skills">
       <div class="section__head">
-        <h2 class="section__title">Competenze</h2>
-        <p class="section__subtitle">Strumenti e ambiti su cui lavoro.</p>
+        <h2 class="section__title">Skills</h2>
+        <p class="section__subtitle">Tools and areas I work with.</p>
       </div>
 
       <div class="skills">
         <div class="skill-group">
-          <h3 class="skill-group__title">Linguaggi &amp; Strumenti</h3>
+          <h3 class="skill-group__title">Languages &amp; Tools</h3>
           <ul class="skill-list">
             <li>MATLAB / Simulink</li>
             <li>Python (pandas, NumPy, matplotlib)</li>
             <li>Git &amp; GitHub</li>
-            <li>Excel avanzato</li>
+            <li>Advanced Excel</li>
           </ul>
         </div>
         <div class="skill-group">
-          <h3 class="skill-group__title">Ambiti tecnici</h3>
+          <h3 class="skill-group__title">Technical areas</h3>
           <ul class="skill-list">
-            <li>Sistemi energetici &amp; rinnovabili</li>
-            <li>Modellazione &amp; simulazione</li>
-            <li>Analisi &amp; visualizzazione dati</li>
-            <li>Efficienza energetica</li>
+            <li>Energy systems &amp; renewables</li>
+            <li>Modelling &amp; simulation</li>
+            <li>Data analysis &amp; visualisation</li>
+            <li>Energy efficiency</li>
           </ul>
         </div>
         <div class="skill-group">
-          <h3 class="skill-group__title">Metodo</h3>
+          <h3 class="skill-group__title">Approach</h3>
           <ul class="skill-list">
-            <li>Problem solving quantitativo</li>
-            <li>Ottimizzazione numerica</li>
-            <li>Reportistica tecnica</li>
-            <li>Documentazione del codice</li>
+            <li>Quantitative problem solving</li>
+            <li>Numerical optimisation</li>
+            <li>Technical reporting</li>
+            <li>Code documentation</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- ===== Contatti ===== -->
-    <section class="section section--alt" id="contatti">
+    <!-- ===== Contact ===== -->
+    <section class="section section--alt" id="contact">
       <div class="container contact">
-        <h2 class="section__title">Contatti</h2>
+        <h2 class="section__title">Contact</h2>
         <p class="contact__lead">
-          Interessato a collaborare o vuoi saperne di più sui miei progetti?
-          Scrivimi pure.
+          Interested in collaborating, or want to know more about my projects?
+          Feel free to reach out.
         </p>
         <div class="contact__links">
-          <a href="mailto:guennaalessandro@gmail.com" class="btn btn--primary">Inviami una email</a>
+          <a href="mailto:guennaalessandro@gmail.com" class="btn btn--primary">Email me</a>
           <a href="https://github.com/alessandroGuenna" target="_blank" rel="noopener" class="btn btn--ghost">GitHub</a>
           <a href="https://www.linkedin.com/in/alessandro-guenna/" target="_blank" rel="noopener" class="btn btn--ghost">LinkedIn</a>
         </div>
@@ -242,7 +242,7 @@
   <footer class="site-footer">
     <div class="container site-footer__inner">
       <span>© <span id="year"></span> Alessandro Guenna</span>
-      <a href="#top" class="site-footer__top">Torna su ↑</a>
+      <a href="#top" class="site-footer__top">Back to top ↑</a>
     </div>
   </footer>
 
