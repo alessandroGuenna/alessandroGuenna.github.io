@@ -185,6 +185,16 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; }
 .project-card__links a { font-weight: 600; font-size: .92rem; color: var(--accent-strong); transition: color .2s ease; }
 .project-card__links a:hover { color: var(--text); }
 
+/* Thumbnail con illustrazione (girante compressore) al posto della scritta */
+.project-card__thumb--compressor {
+  background:
+    url('assets/compressor-impeller.svg') center / 138px no-repeat,
+    radial-gradient(120% 120% at 100% 0%, var(--accent-soft) 0%, transparent 55%),
+    linear-gradient(135deg, #eef2f4 0%, #e3e9ec 100%);
+}
+.project-card__thumb--compressor::after { content: none; }
+.project-card:hover .project-card__thumb--compressor { background-size: 148px, auto, auto; transition: background-size .25s ease; }
+
 /* ===================================================================
    Chi sono
    =================================================================== */
