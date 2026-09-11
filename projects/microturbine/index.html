@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pannello di controllo microturbina (CHP) — Alessandro Guenna</title>
+  <meta name="description" content="Applicazione MATLAB che simula il pannello di controllo di una microturbina cogenerativa da ~80 kW: modello termodinamico dinamico in Simulink, mappe del compressore, turbina in choking, recuperatore a nodi e sistema di controllo a velocità variabile." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+
+  <!-- MathJax per le equazioni -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+
+  <style>
+    /* ===== Stili specifici della pagina di progetto ===== */
+    .proj { max-width: 900px; }
+
+    .proj-hero { padding: 56px 0 28px; }
+    .proj-hero__back { display: inline-block; color: var(--text-soft); font-weight: 500; font-size: .92rem; margin-bottom: 22px; }
+    .proj-hero__back:hover { color: var(--accent-strong); }
+    .proj-hero__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .proj-hero__title { font-size: clamp(1.9rem, 4.5vw, 2.9rem); letter-spacing: -.02em; margin-bottom: 16px; }
+    .proj-hero__lead { font-size: 1.12rem; color: var(--text-soft); margin: 0 0 26px; }
+    .proj-hero__actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    /* Callout / disclaimer */
+    .callout {
+      display: flex; gap: 14px;
+      background: var(--accent-soft);
+      border: 1px solid #cfe8dd;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin: 8px 0 8px;
+      color: #14513a;
+    }
+    .callout__icon { font-size: 1.3rem; line-height: 1.3; }
+    .callout p { margin: 0; font-size: .97rem; }
+    .callout strong { color: #0d3f2c; }
+
+    /* Sezioni del progetto */
+    .proj-section { padding: 46px 0 8px; }
+    .proj-section__kicker { text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 600; color: var(--accent-strong); margin: 0 0 8px; }
+    .proj-section__title { font-size: clamp(1.5rem, 3.2vw, 2.05rem); letter-spacing: -.02em; margin: 0 0 8px; }
+    .proj h3 { font-family: var(--font-display); font-size: 1.25rem; margin: 32px 0 10px; letter-spacing: -.01em; }
+    .proj h4 { font-family: var(--font-display); font-size: 1.05rem; margin: 22px 0 6px; }
+    .proj p { color: var(--text-soft); }
+    .proj ul { color: var(--text-soft); padding-left: 20px; }
+    .proj ul li { margin: 6px 0; }
+
+    /* Figure */
+    figure { margin: 24px 0; }
+    figure img, figure video { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); background: #0e0e0e; display: block; }
+    figcaption { color: var(--text-faint); font-size: .88rem; margin-top: 10px; text-align: center; }
+    .fig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .fig-grid figure { margin: 0; }
+
+    /* Card di blocco (modello) */
+    .block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin: 18px 0; }
+    .block__head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .block__num { flex: none; width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: #fff; font-family: var(--font-display); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+    .block__title { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin: 0; }
+    .block__badge { margin-left: auto; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--accent-strong); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
+    .block p { margin: 8px 0; font-size: .97rem; }
+    .sim-note { border-left: 3px solid var(--accent); background: var(--bg-alt); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0 2px; font-size: .93rem; color: var(--text-soft); }
+    .sim-note strong { color: var(--text); }
+
+    /* Tabella specifiche */
+    .spec-wrap { overflow-x: auto; margin: 20px 0; }
+    table.spec { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    table.spec caption { text-align: left; color: var(--text-faint); font-size: .88rem; margin-bottom: 10px; }
+    table.spec th, table.spec td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+    table.spec thead th { font-family: var(--font-display); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-soft); border-bottom: 2px solid var(--border); }
+    table.spec td.val { font-variant-numeric: tabular-nums; color: var(--text); width: 130px; white-space: nowrap; }
+    table.spec td.val .blank { display: inline-block; min-width: 54px; border-bottom: 1px dashed var(--text-faint); color: transparent; }
+    table.spec td.unit { color: var(--text-faint); width: 90px; }
+    table.spec tbody tr:hover { background: var(--bg-alt); }
+    .spec-group td { font-family: var(--font-display); font-weight: 600; color: var(--accent-strong); background: var(--accent-soft); font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; }
+
+    @media (max-width: 720px) {
+      .fig-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="../../index.html" class="nav__brand">AG<span class="nav__brand-dot">.</span></a>
+      <ul class="nav__links">
+        <li><a href="../../index.html#progetti">Progetti</a></li>
+        <li><a href="../../index.html#chi-sono">Chi sono</a></li>
+        <li><a href="../../index.html#contatti">Contatti</a></li>
+        <li><a href="https://github.com/alessandroGuenna" target="_blank" rel="noopener" class="nav__github">GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container proj">
+    <!-- ===== HERO ===== -->
+    <section class="proj-hero">
+      <a href="../../index.html#progetti" class="proj-hero__back">← Torna ai progetti</a>
+      <div class="proj-hero__tags">
+        <span class="tag">MATLAB</span>
+        <span class="tag">Simulink</span>
+        <span class="tag">App Designer</span>
+        <span class="tag">Cogenerazione (CHP)</span>
+        <span class="tag">Modellazione dinamica</span>
+      </div>
+      <h1 class="proj-hero__title">Pannello di controllo di una microturbina cogenerativa</h1>
+      <p class="proj-hero__lead">
+        Un'applicazione MATLAB interattiva che simula in tempo reale il pannello di
+        controllo di una microturbina a gas da circa <strong>80 kW</strong>, integrata
+        in un sistema di cogenerazione (CHP) che produce acqua calda sanitaria. Dietro
+        l'interfaccia gira un modello termodinamico dinamico costruito in Simulink.
+      </p>
+      <div class="proj-hero__actions">
+        <a href="microturbine-control-panel.zip" class="btn btn--primary" download>Scarica il progetto (ZIP)</a>
+        <a href="#" class="btn btn--ghost" id="code-link" target="_blank" rel="noopener">Codice su GitHub ↗</a>
+      </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <div class="callout">
+      <span class="callout__icon">🎮</span>
+      <p>
+        <strong>Nota.</strong> Questo modello non riproduce una macchina reale specifica: è nato
+        come un "gioco" di simulazione a scopo didattico e di esercizio. La struttura è però
+        completa e fisicamente coerente, quindi con dati accurati forniti da un costruttore
+        (mappe, geometrie, curve di rendimento) potrebbe essere calibrata fino a diventare
+        una sorta di <strong>digital twin</strong> di una microturbina esistente.
+      </p>
+    </div>
+
+    <!-- =================================================================
+         PARTE 1 — INTRODUZIONE E USO DELL'APP
+         ================================================================= -->
+    <section class="proj-section">
+      <p class="proj-section__kicker">Parte 1</p>
+      <h2 class="proj-section__title">L'applicazione: cosa fa e come si controlla</h2>
+
+      <p>
+        L'app è organizzata in due schede. La scheda <strong>Main</strong> raccoglie i comandi
+        e i grafici in tempo reale; la scheda <strong>Plant</strong> mostra lo schema d'impianto
+        con le grandezze fisiche aggiornate istante per istante. L'utente imposta le condizioni
+        al contorno e la potenza richiesta, avvia la simulazione e osserva come la macchina
+        risponde, esattamente come farebbe davanti al quadro di controllo di un impianto reale.
+      </p>
+
+      <figure>
+        <img src="assets/schermataIniziale.png" alt="Schermata iniziale dell'app: comandi a sinistra, grafico della potenza elettrica e mappa del compressore" />
+        <figcaption>Scheda <em>Main</em> all'avvio: comandi (sinistra), potenza elettrica erogata (in alto) e mappa del compressore "viva" (in basso).</figcaption>
+      </figure>
+
+      <h3>I comandi principali</h3>
+      <ul>
+        <li><strong>Ambient temperature</strong> — la temperatura ambiente dell'aria aspirata, che influenza prestazioni e rendimento.</li>
+        <li><strong>Initialize</strong> — calcola il punto di progetto, costruisce lo schedule di velocità ottimale e prepara il modello prima dell'avvio.</li>
+        <li><strong>START / STOP</strong> — avvia e ferma la simulazione dinamica; la spia <em>Status</em> segnala lo stato (in attesa / in funzione).</li>
+        <li><strong>Set load [kW]</strong> — la potenza elettrica richiesta dall'utenza: è la "manopola" con cui si guida la macchina.</li>
+        <li><strong>Design</strong> — mostra il punto di progetto e il ciclo termodinamico di riferimento.</li>
+      </ul>
+
+      <h3>Cosa si vede durante la simulazione</h3>
+      <p>
+        A destra, tre indicatori numerici riportano in continuo <strong>potenza</strong>,
+        <strong>rapporto di compressione (PR)</strong> e <strong>velocità dell'albero</strong>.
+        Il grafico in alto confronta la potenza elettrica erogata con il set-point richiesto,
+        mentre sulla mappa del compressore un punto (<em>OP</em>) mostra dove sta lavorando la
+        macchina rispetto alla linea di pompaggio (surge line).
+      </p>
+
+      <div class="fig-grid">
+        <figure>
+          <img src="assets/rampUp.png" alt="Transitorio di aumento del carico: la potenza insegue il set-point in salita" />
+          <figcaption>Aumento di carico: il set-point (arancione) sale a gradini e la potenza erogata (blu) lo insegue con una rampa controllata.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/diminuzioneCarico.png" alt="Transitorio di riduzione del carico: la potenza scende in modo controllato" />
+          <figcaption>Riduzione di carico: alla brusca discesa del set-point la macchina risponde con una diminuzione graduale, limitata dall'inerzia termica e meccanica.</figcaption>
+        </figure>
+      </div>
+
+      <h3>La scheda Plant: lo schema d'impianto</h3>
+      <p>
+        La seconda scheda visualizza l'intero impianto — compressore, camera di combustione,
+        turbina, recuperatore, generatore e caldaia a recupero (HRB) — con le temperature nei
+        vari punti e i due rendimenti (elettrico e complessivo CHP) aggiornati in tempo reale.
+        È il modo più immediato per "vedere" cosa accade dentro la macchina mentre cambia il carico.
+      </p>
+
+      <figure>
+        <video src="assets/videoSchemaImpiantoTransient.mp4" controls muted loop playsinline preload="metadata"></video>
+        <figcaption>Scheda <em>Plant</em> durante un transitorio: temperature e rendimenti si aggiornano mentre la macchina insegue il nuovo carico.</figcaption>
+      </figure>
+    </section>
+
+    <!-- =================================================================
+         PARTE 2 — APPROFONDIMENTO MATEMATICO DEL MODELLO
+         ================================================================= -->
+    <section class="proj-section">
+      <p class="proj-section__kicker">Parte 2</p>
+      <h2 class="proj-section__title">Il modello: blocchi ed equazioni</h2>
+
+      <p>
+        Il cuore dell'app è un modello dinamico del <strong>ciclo Brayton rigenerativo</strong>
+        a singolo albero. Il flusso segue le stazioni numerate qui sotto: aria in ingresso (1),
+        mandata compressore (2), uscita lato freddo del recuperatore (2''), ingresso turbina (3),
+        scarico turbina (4), uscita lato caldo del recuperatore (5) e uscita fumi dalla caldaia
+        a recupero (6). Di seguito i blocchi principali con le rispettive equazioni; per i blocchi
+        "particolari" indico anche <strong>come sono stati implementati in Simulink</strong>.
+      </p>
+
+      <figure>
+        <img src="assets/schemaImpiantoAttivo.png" alt="Schema dell'impianto con le temperature nelle varie stazioni del ciclo" />
+        <figcaption>Il ciclo completo con le stazioni termodinamiche: compressore → recuperatore (freddo) → camera di combustione → turbina → recuperatore (caldo) → caldaia a recupero.</figcaption>
+      </figure>
+
+      <p style="font-size:.92rem;color:var(--text-faint)">
+        Simboli: \(\gamma\) rapporto dei calori specifici dell'aria, \(c_p\) calore specifico,
+        \(\eta\) rendimenti, \(\dot m\) portate massiche, \(PR\) rapporto di compressione,
+        \(\beta\) rapporto di espansione della turbina.
+      </p>
+
+      <!-- Blocco 1: Compressore -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">1</span>
+          <h3 class="block__title" style="margin:0">Compressore</h3>
+          <span class="block__badge">Mappa in Simulink</span>
+        </div>
+        <p>
+          La compressione è modellata come trasformazione adiabatica reale, a partire da quella
+          isentropica corretta con il rendimento \(\eta_c\):
+        </p>
+        \[ T_{2s} = T_1\, PR^{\frac{\gamma-1}{\gamma}}, \qquad
+           T_2 = T_1 + \frac{T_{2s}-T_1}{\eta_c}, \qquad
+           \dot W_c = \dot m_a\, c_{p,\text{air}}\,(T_2 - T_1) \]
+        <p>
+          La portata d'aria non è imposta: viene letta dalla <strong>mappa del compressore</strong>,
+          che lega rapporto di compressione e velocità alla portata elaborata, \(\dot m_a = f(PR, n)\).
+        </p>
+        <div class="sim-note">
+          <strong>Implementazione Simulink.</strong> La mappa è costruita da dati sperimentali
+          (curve a velocità costante 48–72 krpm) memorizzati in <code>CompressorMap.mat</code>.
+          I punti \((\beta, n)\) sono interpolati con un blocco di lookup di Simscape (interpolazione
+          su dati sparsi) per restituire la portata; la stessa mappa alimenta il grafico "vivo" e
+          il calcolo del <strong>margine di pompaggio</strong> rispetto alla surge line.
+        </div>
+      </div>
+
+      <!-- Blocco 2: Volume di accumulo / dinamica delle pressioni -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">2</span>
+          <h3 class="block__title" style="margin:0">Volume di accumulo e perdite di carico</h3>
+        </div>
+        <p>
+          Un piccolo volume di plenum introduce la <strong>dinamica delle pressioni</strong>: la
+          pressione di mandata evolve secondo il bilancio di massa tra portata entrante e uscente
+          (\(\frac{dm}{dt} = \dot m_{in} - \dot m_{out}\), con \(P = mRT/V\)), rendendo il PR uno
+          stato del sistema e non un valore imposto. Le perdite di carico lungo condotti,
+          recuperatore e camera di combustione sono raccolte in coefficienti quadratici nella portata:
+        </p>
+        \[ P_2' = PR\cdot P_1, \qquad
+           P_3 = P_2'\,\bigl(1 - \lambda\, \dot m_a^{\,2}\bigr), \qquad
+           P_4 = P_{amb} + \lambda_{eg}\, \dot m_{eg}^{\,2} \]
+      </div>
+
+      <!-- Blocco 3: Camera di combustione -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">3</span>
+          <h3 class="block__title" style="margin:0">Camera di combustione</h3>
+        </div>
+        <p>
+          La portata di combustibile si ricava da un bilancio di energia algebrico, imponendo la
+          temperatura di ingresso turbina \(T_3\) e tenendo conto del rendimento di combustione
+          \(\eta_{comb}\) e del potere calorifico inferiore \(LHV\):
+        </p>
+        \[ \dot m_f = \dot m_a\,\frac{c_{p,eg}\,T_3 - c_{p,\text{air}}\,T_2''}
+                         {LHV\,\eta_{comb} - c_{p,eg}\,T_3} \]
+        <p style="font-size:.92rem;color:var(--text-faint)">
+          \(T_2''\) è la temperatura dell'aria in uscita dal recuperatore (ingresso in camera).
+          Essendo un semplice legame algebrico, non richiede una struttura Simulink dedicata.
+        </p>
+      </div>
+
+      <!-- Blocco 4: Turbina -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">4</span>
+          <h3 class="block__title" style="margin:0">Turbina</h3>
+          <span class="block__badge">Choking in Simulink</span>
+        </div>
+        <p>
+          La turbina lavora in condizioni di <strong>bloccaggio sonico (choking)</strong>: la portata
+          smaltita è legata alle condizioni di ingresso da una costante di macchina \(K_{choke}\),
+          fissata al punto di progetto e trattata come dato hardware (la "gola" della turbina):
+        </p>
+        \[ \dot m_{eg} = K_{choke}\,\frac{P_3}{\sqrt{T_3}}, \qquad
+           K_{choke} = \left.\frac{\dot m_{eg}\sqrt{T_3}}{P_3}\right|_{\text{design}} \]
+        <p>L'espansione reale, con rendimento \(\eta_t\) e rapporto \(\beta = P_3/P_4\), dà la temperatura di scarico e la potenza:</p>
+        \[ T_4 = T_3 - \eta_t\,T_3\Bigl(1 - \beta^{-\frac{\gamma-1}{\gamma}}\Bigr), \qquad
+           \dot W_t = \dot m_{eg}\, c_{p,eg}\,(T_3 - T_4) \]
+        <div class="sim-note">
+          <strong>Implementazione Simulink.</strong> La relazione di choking è realizzata come blocco
+          algebrico con \(K_{choke}\) costante, affiancato da una verifica della condizione di
+          bloccaggio \(\beta \ge \beta_{crit} = \left(\tfrac{\gamma+1}{2}\right)^{\frac{\gamma}{\gamma-1}}\):
+          finché \(\beta\) resta sopra il valore critico l'ipotesi è valida, altrimenti viene segnalata.
+        </div>
+      </div>
+
+      <!-- Blocco 5: Recuperatore -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">5</span>
+          <h3 class="block__title" style="margin:0">Recuperatore</h3>
+          <span class="block__badge">5 nodi + massa metallica</span>
+        </div>
+        <p>
+          Il recuperatore preriscalda l'aria compressa con i gas di scarico. È il blocco più
+          articolato: è modellato come scambiatore <strong>controcorrente a 5 nodi</strong>, ciascuno
+          con la propria <strong>massa metallica</strong> che immagazzina energia e introduce inerzia
+          termica. Per ogni nodo l'efficienza di scambio e la conduttanza dipendono dalla portata
+          secondo la correlazione di Dittus–Boelter:
+        </p>
+        \[ \varepsilon = \exp\!\left(-\frac{UA/N}{\dot m\, c_p}\right), \qquad
+           UA = UA_0\left(\frac{\dot m}{\dot m_0}\right)^{0.8} \]
+        <p>La temperatura del metallo di ciascun nodo evolve con il bilancio tra calore ceduto dai fumi e assorbito dall'aria:</p>
+        \[ C_m\,\frac{dT_{m,i}}{dt} = \dot Q_{h,i} - \dot Q_{c,i} \]
+        <div class="sim-note">
+          <strong>Implementazione Simulink.</strong> I due lati (freddo e caldo) sono realizzati con
+          due chart/MATLAB Function (<code>recCold</code> e <code>recHot</code>) che condividono i 5
+          stati di temperatura del metallo; in transitorio integrano le equazioni dei nodi, a regime
+          restituiscono lo stesso risultato del solutore stazionario condiviso con il punto di progetto.
+        </div>
+      </div>
+
+      <!-- Blocco 6: Albero -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">6</span>
+          <h3 class="block__title" style="margin:0">Dinamica dell'albero</h3>
+        </div>
+        <p>
+          Compressore, turbina e generatore sono calettati sullo stesso albero. Lo squilibrio tra
+          potenza prodotta dalla turbina e potenza assorbita da compressore e carico elettrico
+          accelera o decelera il rotore, con inerzia \(J\):
+        </p>
+        \[ J\,\omega\,\frac{d\omega}{dt} = \eta_{mech}\,\dot W_t - \dot W_c - \frac{P_{el}}{\eta_{gen}} \]
+        <p style="font-size:.92rem;color:var(--text-faint)">
+          È l'equazione di stato che governa la velocità: è il motivo per cui, a un gradino di carico,
+          la macchina risponde con un transitorio invece che istantaneamente.
+        </p>
+      </div>
+
+      <!-- Blocco 7: Generatore + HRB -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">7</span>
+          <h3 class="block__title" style="margin:0">Generatore e caldaia a recupero (HRB)</h3>
+        </div>
+        <p>
+          La potenza netta all'albero diventa potenza elettrica tramite i rendimenti meccanico ed
+          elettrico; i fumi in uscita dal recuperatore cedono infine calore all'acqua nella caldaia
+          a recupero, con efficienza \(\varepsilon_{HRB}\), per fornire acqua calda sanitaria:
+        </p>
+        \[ P_{el} = (\dot W_t - \dot W_c)\,\eta_{mech}\,\eta_{gen}, \qquad
+           \dot m_w = \varepsilon_{HRB}\,\frac{\dot m_{eg}\,c_{p,eg}\,(T_5 - T_{w,in})}{c_{p,w}\,(T_{set} - T_{w,in})} \]
+        <p style="font-size:.92rem;color:var(--text-faint)">
+          Un accumulo d'acqua (buffer) aggiunge inerzia termica al lato utenza, stabilizzando la
+          temperatura di mandata attorno al set-point (60 °C).
+        </p>
+      </div>
+
+      <!-- Blocco 8: Controllo -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">8</span>
+          <h3 class="block__title" style="margin:0">Sistema di controllo</h3>
+          <span class="block__badge">Cuore logico</span>
+        </div>
+        <p>
+          Il controllo insegue la potenza richiesta mantenendo la macchina in sicurezza ed efficiente.
+          Si articola in tre livelli.
+        </p>
+        <h4>a) Schedule di velocità ottimale</h4>
+        <p>
+          Per ogni livello di potenza viene precalcolata la velocità dell'albero che
+          <strong>massimizza il rendimento elettrico</strong>, rispettando i vincoli di margine al
+          pompaggio, mantenimento del choking, limiti di velocità e temperatura massima di ingresso
+          turbina:
+        </p>
+        \[ n_{ref}(P_{el}) = \arg\max_{n}\ \eta_{el}
+           \quad \text{s.t.}\quad
+           \text{surge},\ \beta \ge \beta_{crit},\ n \in [n_{min}, n_{max}],\ T_3 \le T_{3,max} \]
+        <div class="sim-note">
+          <strong>Implementazione Simulink.</strong> Lo schedule è calcolato offline all'inizializzazione
+          (funzione <code>computeSpeedSchedule</code>) e implementato a runtime come una <strong>lookup 1-D</strong>
+          \(P_{el}\rightarrow n_{ref}\), veloce da valutare a ogni passo.
+        </div>
+        <h4>b) Regolatore di velocità/potenza</h4>
+        <p>
+          Un governor agisce sulla portata di combustibile per portare la velocità a \(n_{ref}\); un
+          <strong>rate limiter</strong> sulla richiesta di carico impone rampe compatibili con la
+          dinamica termo-meccanica, evitando sovra/sotto-velocità.
+        </p>
+        <h4>c) Protezioni e load shedding</h4>
+        <p>
+          Quando l'albero cala di giri (\(n < n_{ref}\)) e il combustibile è al suo massimo dinamico,
+          un limitatore riduce in modo proporzionale il carico applicato, quel tanto che basta a far
+          recuperare la macchina:
+        </p>
+        \[ P_{shed} = K \cdot s \cdot \max\!\bigl(0,\ (n_{ref} - n) - \text{DZ}\bigr) \]
+        <div class="sim-note">
+          <strong>Implementazione Simulink.</strong> Il termine è puramente proporzionale (nessuna
+          azione integrale o derivativa), così non introduce ritardo di fase e non innesca oscillazioni;
+          viene sottratto alla richiesta <em>prima</em> del rate limiter. Completano la protezione il
+          limite di massima temperatura turbina (max-fuel) e il clamp di carico minimo (turndown).
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         TABELLA SPECIFICHE
+         ================================================================= -->
+    <section class="proj-section">
+      <p class="proj-section__kicker">Scheda tecnica</p>
+      <h2 class="proj-section__title">Specifiche di progetto</h2>
+      <p>Parametri nominali della macchina simulata (valori da inserire).</p>
+
+      <div class="spec-wrap">
+        <table class="spec">
+          <caption>Punto di progetto nominale, condizioni ambiente 15 °C.</caption>
+          <thead>
+            <tr><th>Parametro</th><th>Valore</th><th>Unità</th></tr>
+          </thead>
+          <tbody>
+            <tr class="spec-group"><td colspan="3">Prestazioni elettriche</td></tr>
+            <tr><td>Potenza elettrica nominale</td><td class="val"><span class="blank">—</span></td><td class="unit">kW</td></tr>
+            <tr><td>Rendimento elettrico</td><td class="val"><span class="blank">—</span></td><td class="unit">%</td></tr>
+            <tr><td>Potenza elettrica minima (turndown)</td><td class="val"><span class="blank">—</span></td><td class="unit">kW</td></tr>
+
+            <tr class="spec-group"><td colspan="3">Cogenerazione (CHP)</td></tr>
+            <tr><td>Potenza termica recuperata</td><td class="val"><span class="blank">—</span></td><td class="unit">kW</td></tr>
+            <tr><td>Rendimento totale CHP</td><td class="val"><span class="blank">—</span></td><td class="unit">%</td></tr>
+            <tr><td>Temperatura acqua di mandata</td><td class="val"><span class="blank">—</span></td><td class="unit">°C</td></tr>
+
+            <tr class="spec-group"><td colspan="3">Ciclo termodinamico</td></tr>
+            <tr><td>Rapporto di compressione (PR)</td><td class="val"><span class="blank">—</span></td><td class="unit">–</td></tr>
+            <tr><td>Temperatura ingresso turbina (T₃)</td><td class="val"><span class="blank">—</span></td><td class="unit">°C</td></tr>
+            <tr><td>Temperatura gas di scarico</td><td class="val"><span class="blank">—</span></td><td class="unit">°C</td></tr>
+            <tr><td>Portata d'aria</td><td class="val"><span class="blank">—</span></td><td class="unit">kg/s</td></tr>
+            <tr><td>Efficienza recuperatore</td><td class="val"><span class="blank">—</span></td><td class="unit">–</td></tr>
+
+            <tr class="spec-group"><td colspan="3">Gruppo rotante</td></tr>
+            <tr><td>Velocità nominale albero</td><td class="val"><span class="blank">—</span></td><td class="unit">rpm</td></tr>
+            <tr><td>Intervallo di velocità</td><td class="val"><span class="blank">—</span></td><td class="unit">rpm</td></tr>
+            <tr><td>Rendimento compressore</td><td class="val"><span class="blank">—</span></td><td class="unit">–</td></tr>
+            <tr><td>Rendimento turbina</td><td class="val"><span class="blank">—</span></td><td class="unit">–</td></tr>
+
+            <tr class="spec-group"><td colspan="3">Combustibile</td></tr>
+            <tr><td>Tipo di combustibile</td><td class="val"><span class="blank">—</span></td><td class="unit"></td></tr>
+            <tr><td>Potere calorifico inferiore (LHV)</td><td class="val"><span class="blank">—</span></td><td class="unit">MJ/kg</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <span>© <span id="year"></span> Alessandro Guenna</span>
+      <a href="../../index.html" class="site-footer__top">← Home</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
