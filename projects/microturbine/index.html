@@ -119,8 +119,11 @@
       <p class="proj-hero__lead">
         An interactive MATLAB application that simulates, in real time, the control
         panel of a gas microturbine of about <strong>80 kW</strong>, integrated into
-        a cogeneration (CHP) system that produces domestic hot water. Behind the
-        interface runs a dynamic thermodynamic model built in Simulink.
+        a cogeneration (CHP) system that produces domestic hot water. The plant works
+        in electrical priority, with a control system that tracks the target set by the
+        user, while the hot-water flow rate is dynamically controlled to keep a constant
+        output temperature (60 °C). Behind the interface runs a dynamic thermodynamic
+        model built in Simulink.
       </p>
       <div class="proj-hero__actions">
         <a href="microturbine-control-panel.zip" class="btn btn--primary" download>Download the project (ZIP)</a>
@@ -148,55 +151,60 @@
       <h2 class="proj-section__title">The app: what it does and how to control it</h2>
 
       <p>
-        The app is organised into two tabs. The <strong>Main</strong> tab holds the
-        controls and the real-time plots; the <strong>Plant</strong> tab shows the plant
-        diagram with the physical quantities updated instant by instant. The user sets
-        the boundary conditions and the requested power, starts the simulation and watches
-        how the machine responds — just as they would in front of the control panel of a
-        real plant.
+        The app is organised into two tabs. One holds the controls and the real-time plots;
+        the other shows a live update of the most meaningful temperatures of the plant.
+        Once the model is running, the user can freely set the target electrical production
+        and monitor the plant response, just as they would in front of the control panel of
+        a real plant.
       </p>
 
       <figure>
         <img src="assets/schermataIniziale.png" alt="Initial screen of the app: controls on the left, electrical power plot and compressor map" />
-        <figcaption>The <em>Main</em> tab at start-up: controls (left), electrical power output (top) and the "live" compressor map (bottom).</figcaption>
+        <figcaption>The <em>Main</em> tab at start-up: controls (left), electrical power output (top) and the live compressor map (bottom).</figcaption>
       </figure>
 
       <h3>The main controls</h3>
-      <ul>
-        <li><strong>Ambient temperature</strong> — the temperature of the intake air, which affects performance and efficiency.</li>
-        <li><strong>Initialize</strong> — computes the design point, builds the optimal-speed schedule and prepares the model before start-up.</li>
-        <li><strong>START / STOP</strong> — start and stop the dynamic simulation; the <em>Status</em> light shows the state (idle / running).</li>
-        <li><strong>Set load [kW]</strong> — the electrical power requested by the user: it is the "knob" used to drive the machine.</li>
-        <li><strong>Design</strong> — shows the design point and the reference thermodynamic cycle.</li>
-      </ul>
-
-      <h3>What you see during the simulation</h3>
       <p>
-        On the right, three numeric indicators continuously report <strong>power</strong>,
-        <strong>pressure ratio (PR)</strong> and <strong>shaft speed</strong>. The top plot
-        compares the electrical power output with the requested set-point, while on the
-        compressor map a point (<em>OP</em>) shows where the machine is operating relative
-        to the surge line.
+        Before starting the simulation, the model must be initialised with the only
+        non-fixed boundary condition: the ambient temperature, in other words the air-intake
+        temperature. This directly affects the plant's performance and efficiency, so the
+        program automatically adapts the optimal-speed schedule, the maximum and minimum
+        power thresholds and the design conditions accordingly. Once the simulation is
+        initialised and started, the user can move the slider to set the power set-point, and
+        may use the <strong>Design</strong> button to send the target back to design
+        conditions. Note that the power set-point is not the actual electrical load drawn
+        from the shaft: sudden load discontinuities could damage the machine, so the
+        generator is designed to damp them into a smooth transition the system can handle.
+        In the bottom plot the user can also see where the current operating point of the
+        compressor sits within the compressor map.
+      </p>
+
+      <p>
+        The two images below are shown as an example. Notice how the machine reacts more
+        quickly to a load cut than to a load increase: a transient from maximum to minimum
+        power can be completed safely in 10–15 seconds, whereas a full ramp-up in the
+        opposite direction takes about 2.5 minutes. The reason lies in the turbine-inlet
+        temperature (TIT): to keep a good efficiency the machine always runs with a TIT close
+        to its maximum allowable value. When more power is requested, the fuel flow cannot
+        simply be pushed all the way up; it must be raised very gradually, so that the
+        recuperator warms up progressively and the TIT limit is never exceeded.
       </p>
 
       <div class="fig-grid">
         <figure>
           <img src="assets/rampUp.png" alt="Load increase transient: power tracks the rising set-point" />
-          <figcaption>Load increase: the set-point (orange) rises in steps and the output power (blue) tracks it with a controlled ramp.</figcaption>
         </figure>
         <figure>
           <img src="assets/diminuzioneCarico.png" alt="Load decrease transient: power comes down in a controlled way" />
-          <figcaption>Load decrease: to the sudden drop of the set-point the machine responds with a gradual decrease, limited by thermal and mechanical inertia.</figcaption>
         </figure>
       </div>
 
-      <h3>The Plant tab: the plant diagram</h3>
+      <h3>The plant diagram</h3>
       <p>
-        The second tab visualises the whole plant — compressor, combustion chamber,
-        turbine, recuperator, generator and heat-recovery boiler (HRB) — with the
-        temperatures at the various points and the two efficiencies (electrical and
-        overall CHP) updated in real time. It is the most immediate way to "see" what
-        happens inside the machine as the load changes.
+        The second tab visualises the whole plant: compressor, combustion chamber, turbine,
+        recuperator, generator and heat-recovery boiler (HRB). It shows the temperatures at
+        the most important nodes and the two efficiencies (electrical and CHP), updated in
+        real time.
       </p>
 
       <figure>
