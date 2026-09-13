@@ -222,23 +222,23 @@
 
       <p>
         The heart of the app is a dynamic model of the single-shaft
-        <strong>recuperated Brayton cycle</strong>. The flow follows the numbered stations
-        below: inlet air (1), compressor discharge (2), recuperator cold-side outlet (2''),
-        turbine inlet (3), turbine exhaust (4), recuperator hot-side outlet (5) and
-        flue-gas outlet from the heat-recovery boiler (6). Below are the main blocks with
-        their equations; for the "special" blocks I also indicate
-        <strong>how they were implemented in Simulink</strong>.
+        <strong>recuperated Brayton cycle</strong> in a cogeneration layout. The diagram below
+        numbers the main streams of the plant, from the air intake (1) to the hot-water supply
+        (9). The sections that follow describe the main blocks of the model with their governing
+        equations.
       </p>
 
       <figure>
-        <img src="assets/schemaImpiantoAttivo.png" alt="Plant diagram with the temperatures at the various cycle stations" />
-        <figcaption>The complete cycle with its thermodynamic stations: compressor → recuperator (cold) → combustion chamber → turbine → recuperator (hot) → heat-recovery boiler.</figcaption>
+        <img src="assets/plant-diagram.svg" alt="Process diagram of the microturbine plant with the streams numbered from 1 to 9" />
+        <figcaption>Plant layout: compressor, recuperator (cold side), combustion chamber, turbine, recuperator (hot side) and heat-recovery boiler, with the numbered streams referenced in the text.</figcaption>
       </figure>
 
       <p style="font-size:.92rem;color:var(--text-faint)">
-        Symbols: \(\gamma\) heat-capacity ratio of air, \(c_p\) specific heat,
-        \(\eta\) efficiencies, \(\dot m\) mass flow rates, \(PR\) pressure ratio,
-        \(\beta\) turbine expansion ratio.
+        Symbols: \(\gamma\) heat-capacity ratio of air, \(c_p\) specific heat, \(\eta\)
+        efficiencies, \(\dot m\) mass flow rates, \(PR\) pressure ratio, \(\beta\) turbine
+        expansion ratio. Temperatures use the cycle symbols \(T_2\) (compressor outlet),
+        \(T_2''\) (recuperator cold-side outlet), \(T_3\) (turbine inlet, TIT), \(T_4\)
+        (turbine outlet) and \(T_5\) (recuperator hot-side outlet).
       </p>
 
       <!-- Block 1: Compressor -->
@@ -249,93 +249,55 @@
           <span class="block__badge">Map in Simulink</span>
         </div>
         <p>
-          Compression is modelled as a real adiabatic transformation, starting from the
-          isentropic one corrected with the efficiency \(\eta_c\):
+          Compression is modelled starting from an ideal adiabatic compression and applying the
+          isentropic-efficiency correction:
         </p>
-        \[ T_{2s} = T_1\, PR^{\frac{\gamma-1}{\gamma}}, \qquad
-           T_2 = T_1 + \frac{T_{2s}-T_1}{\eta_c}, \qquad
+        \[ T_2 = T_1\left(1 + \frac{PR^{\frac{\gamma-1}{\gamma}} - 1}{\eta_c}\right), \qquad
            \dot W_c = \dot m_a\, c_{p,\text{air}}\,(T_2 - T_1) \]
         <p>
-          The air mass flow is not imposed: it is read from the <strong>compressor map</strong>,
-          which links pressure ratio and speed to the processed flow, \(\dot m_a = f(PR, n)\).
+          The air mass flow rate is read from the <strong>compressor map</strong>, as a function
+          of pressure ratio and rotational speed:
+        </p>
+        \[ \dot m_a = f(PR,\, n) \]
+        <p>
+          It is worth noting that, for lack of detailed data, the model uses a <strong>constant
+          isentropic efficiency</strong> (\(\eta_c = 0.81\)). This makes the absolute efficiency
+          figures of the machine unreliable, but it does not compromise the dynamics of the
+          system.
         </p>
         <div class="sim-note">
-          <strong>Simulink implementation.</strong> The map is built from experimental data
-          (constant-speed lines, 48–72 krpm) stored in <code>CompressorMap.mat</code>. The
-          \((\beta, n)\) points are interpolated with a Simscape lookup block (interpolation
-          over scattered data) to return the flow; the same map feeds the "live" plot and the
-          computation of the <strong>surge margin</strong> relative to the surge line.
+          <strong>Simulink implementation.</strong> The compressor map is taken from the paper
+          referenced at the end of this section. It is solved with a <strong>PS Scattered Lookup
+          Table (2-D)</strong> block, building a small Simscape network that returns the mass
+          flow from the current \((PR, n)\).
         </div>
       </div>
 
-      <!-- Block 2: Accumulation volume / pressure dynamics -->
+      <!-- Block 2: Accumulation volume -->
       <div class="block">
         <div class="block__head">
           <span class="block__num">2</span>
-          <h3 class="block__title" style="margin:0">Accumulation volume and pressure drops</h3>
+          <h3 class="block__title" style="margin:0">Accumulation volume</h3>
         </div>
         <p>
-          A small plenum volume introduces the <strong>pressure dynamics</strong>: the
-          discharge pressure evolves according to the mass balance between incoming and
-          outgoing flow (\(\frac{dm}{dt} = \dot m_{in} - \dot m_{out}\), with \(P = mRT/V\)),
-          making PR a state of the system rather than an imposed value. The pressure drops
-          along ducts, recuperator and combustion chamber are lumped into coefficients that
-          are quadratic in the flow:
+          This block captures the effect of <strong>mass accumulation</strong> throughout the
+          machine, which gives the discharge pressure its own dynamics (so \(PR\) is a state of
+          the system, not an imposed value). The pressure evolves from the imbalance between the
+          air drawn by the compressor \(\dot m_a\) and the flow leaving towards the turbine
+          \(\dot m_x\):
         </p>
-        \[ P_2' = PR\cdot P_1, \qquad
-           P_3 = P_2'\,\bigl(1 - \lambda\, \dot m_a^{\,2}\bigr), \qquad
-           P_4 = P_{amb} + \lambda_{eg}\, \dot m_{eg}^{\,2} \]
+        \[ \frac{dP_2}{dt} = \frac{1}{C_f}\left(\dot m_a - \dot m_x\right), \qquad
+           C_f = \frac{V}{\gamma\, R\, T_2} \]
+        <p style="font-size:.92rem;color:var(--text-faint)">
+          \(C_f\) is the fluid-dynamic capacitance, \(V\) an estimate of the fluid volume inside
+          the whole machine (about 25 litres) and \(R\) the gas constant.
+        </p>
       </div>
 
-      <!-- Block 3: Combustion chamber -->
+      <!-- Block 3: Recuperator -->
       <div class="block">
         <div class="block__head">
           <span class="block__num">3</span>
-          <h3 class="block__title" style="margin:0">Combustion chamber</h3>
-        </div>
-        <p>
-          The fuel flow is obtained from an algebraic energy balance, by imposing the
-          turbine-inlet temperature \(T_3\) and accounting for the combustion efficiency
-          \(\eta_{comb}\) and the lower heating value \(LHV\):
-        </p>
-        \[ \dot m_f = \dot m_a\,\frac{c_{p,eg}\,T_3 - c_{p,\text{air}}\,T_2''}
-                         {LHV\,\eta_{comb} - c_{p,eg}\,T_3} \]
-        <p style="font-size:.92rem;color:var(--text-faint)">
-          \(T_2''\) is the air temperature at the recuperator outlet (chamber inlet). Being a
-          simple algebraic relation, it needs no dedicated Simulink structure.
-        </p>
-      </div>
-
-      <!-- Block 4: Turbine -->
-      <div class="block">
-        <div class="block__head">
-          <span class="block__num">4</span>
-          <h3 class="block__title" style="margin:0">Turbine</h3>
-          <span class="block__badge">Choking in Simulink</span>
-        </div>
-        <p>
-          The turbine operates under <strong>sonic choking</strong>: the swallowed flow is
-          linked to the inlet conditions by a machine constant \(K_{choke}\), fixed at the
-          design point and treated as a hardware datum (the turbine "throat"):
-        </p>
-        \[ \dot m_{eg} = K_{choke}\,\frac{P_3}{\sqrt{T_3}}, \qquad
-           K_{choke} = \left.\frac{\dot m_{eg}\sqrt{T_3}}{P_3}\right|_{\text{design}} \]
-        <p>The real expansion, with efficiency \(\eta_t\) and ratio \(\beta = P_3/P_4\), gives the exhaust temperature and the power:</p>
-        \[ T_4 = T_3 - \eta_t\,T_3\Bigl(1 - \beta^{-\frac{\gamma-1}{\gamma}}\Bigr), \qquad
-           \dot W_t = \dot m_{eg}\, c_{p,eg}\,(T_3 - T_4) \]
-        <div class="sim-note">
-          <strong>Simulink implementation.</strong> The choking relation is realised as an
-          algebraic block with a constant \(K_{choke}\), alongside a check of the choking
-          condition \(\beta \ge \beta_{crit} = \left(\tfrac{\gamma+1}{2}\right)^{\frac{\gamma}{\gamma-1}}\):
-          as long as \(\beta\) stays above the critical value the assumption holds, otherwise
-          it is flagged.
-        </div>
-      </div>
-
-      <!-- Block 5: Recuperator -->
-      <div class="block">
-        <div class="block__head">
-          <span class="block__num">5</span>
           <h3 class="block__title" style="margin:0">Recuperator</h3>
           <span class="block__badge">5 nodes + metal mass</span>
         </div>
@@ -350,100 +312,167 @@
            UA = UA_0\left(\frac{\dot m}{\dot m_0}\right)^{0.8} \]
         <p>The metal temperature of each node evolves with the balance between heat released by the gas and absorbed by the air:</p>
         \[ C_m\,\frac{dT_{m,i}}{dt} = \dot Q_{h,i} - \dot Q_{c,i} \]
-        <div class="sim-note">
-          <strong>Simulink implementation.</strong> The two sides (cold and hot) are realised
-          with two MATLAB Function charts (<code>recCold</code> and <code>recHot</code>) that
-          share the 5 metal-temperature states; during transients they integrate the node
-          equations, at steady state they return the same result as the steady solver shared
-          with the design point.
-        </div>
       </div>
 
-      <!-- Block 6: Shaft -->
+      <!-- Block 4: Combustion chamber -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">4</span>
+          <h3 class="block__title" style="margin:0">Combustion chamber</h3>
+        </div>
+        <p>
+          The fuel flow \(\dot m_f\) comes from the control system and is used to compute the
+          exhaust-gas flow \(\dot m_{eg} = \dot m_x + \dot m_f\). The turbine-inlet temperature
+          \(T_3\) then follows from an algebraic energy balance on the chamber:
+        </p>
+        \[ T_3 = \frac{\eta_{CC}\,\dot m_f\,LHV + \dot m_x\, c_{p,\text{air}}\, T_2''}
+                      {\dot m_{eg}\, c_{p,eg}} \]
+        <p style="font-size:.92rem;color:var(--text-faint)">
+          Written this way, the balance assumes steady, complete combustion and neglects heat
+          losses and the thermal inertia of the chamber. It also uses indicative average values
+          of the specific heats; a more accurate model would rely on an enthalpy-based
+          formulation.
+        </p>
+      </div>
+
+      <!-- Block 5: Pressure drops -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">5</span>
+          <h3 class="block__title" style="margin:0">Pressure drops</h3>
+        </div>
+        <p>
+          A single block lumps the pressure losses in the recuperator, the combustion chamber and
+          the ducts up to the turbine inlet. A <strong>quadratic dependence</strong> between
+          pressure drop and mass flow is assumed, through a coefficient \(\lambda\) that can be
+          tuned to reproduce a given percentage of design losses from the manufacturer's data.
+          The air mass flow \(\dot m_x\) is then obtained from the pressures across the block:
+        </p>
+        \[ \dot m_x = \sqrt{\dfrac{1 - P_3/P_2}{\lambda}} \]
+      </div>
+
+      <!-- Block 6: Turbine -->
       <div class="block">
         <div class="block__head">
           <span class="block__num">6</span>
+          <h3 class="block__title" style="margin:0">Turbine</h3>
+          <span class="block__badge">Choking in Simulink</span>
+        </div>
+        <p>
+          The turbine operates under <strong>sonic choking</strong>: the swallowed flow is
+          linked to the inlet conditions by a machine constant \(K_{choke}\), fixed at the
+          design point and treated as a hardware datum (the turbine "throat"):
+        </p>
+        \[ K_{choke} = \left.\frac{\dot m_{eg}\sqrt{T_3}}{P_3}\right|_{\text{design}} \]
+        <p>The real expansion, with efficiency \(\eta_t\) and ratio \(\beta = P_3/P_4\), gives the exhaust temperature and the power:</p>
+        \[ T_4 = T_3 - \eta_t\,T_3\Bigl(1 - \beta^{-\frac{\gamma-1}{\gamma}}\Bigr), \qquad
+           \dot W_t = \dot m_{eg}\, c_{p,eg}\,(T_3 - T_4) \]
+        <div class="sim-note">
+          <strong>Simulink implementation.</strong> The choking relation is realised as an
+          algebraic block with a constant \(K_{choke}\), alongside a check of the choking
+          condition \(\beta \ge \beta_{crit} = \left(\tfrac{\gamma+1}{2}\right)^{\frac{\gamma}{\gamma-1}}\).
+          If this warning is ever triggered during a simulation, it means the run has drifted into
+          an unrecoverable, unphysical state; the optimal-speed schedule and the maximum/minimum
+          power limits, however, are designed precisely so that these conditions are never reached.
+        </div>
+      </div>
+
+      <!-- Block 7: Exhaust pressure drop -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">7</span>
+          <h3 class="block__title" style="margin:0">Exhaust pressure drop</h3>
+        </div>
+        <p>
+          A dedicated block accounts for the pressure losses downstream of the turbine, again with
+          a quadratic law in the flow:
+        </p>
+        \[ P_4 = P_{amb} + \lambda_{eg}\, \dot m_{eg}^{\,2} \]
+      </div>
+
+      <!-- Block 8: Shaft dynamics -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">8</span>
           <h3 class="block__title" style="margin:0">Shaft dynamics</h3>
         </div>
         <p>
           Compressor, turbine and generator sit on the same shaft. The imbalance between the
-          power produced by the turbine and the power absorbed by compressor and electrical
-          load accelerates or decelerates the rotor, with inertia \(J\):
+          power produced by the turbine, the power absorbed by the compressor and the electrical
+          load accelerates or decelerates the rotor, with inertia \(J\). The rotor kinetic energy
+          \(E\) evolves as:
         </p>
-        \[ J\,\omega\,\frac{d\omega}{dt} = \eta_{mech}\,\dot W_t - \dot W_c - \frac{P_{el}}{\eta_{gen}} \]
+        \[ \frac{dE}{dt} = \eta_{mech}\left(\dot W_t - \dot W_c\right) - \frac{P_{el}}{\eta_{gen}},
+           \qquad n = \frac{60}{2\pi}\sqrt{\frac{2E}{J}} \]
         <p style="font-size:.92rem;color:var(--text-faint)">
-          It is the state equation that governs speed: it is why, on a load step, the machine
-          responds with a transient rather than instantaneously.
+          The electrical power is delivered through the generator (efficiency \(\eta_{gen}\)); this
+          state equation is why, on a load step, the machine responds with a transient rather than
+          instantaneously.
         </p>
       </div>
 
-      <!-- Block 7: Generator + HRB -->
+      <!-- Block 9: Fuel control system -->
       <div class="block">
         <div class="block__head">
-          <span class="block__num">7</span>
-          <h3 class="block__title" style="margin:0">Generator and heat-recovery boiler (HRB)</h3>
-        </div>
-        <p>
-          The net shaft power becomes electrical power through the mechanical and electrical
-          efficiencies; the gas leaving the recuperator finally releases heat to the water in
-          the heat-recovery boiler, with effectiveness \(\varepsilon_{HRB}\), to supply
-          domestic hot water:
-        </p>
-        \[ P_{el} = (\dot W_t - \dot W_c)\,\eta_{mech}\,\eta_{gen}, \qquad
-           \dot m_w = \varepsilon_{HRB}\,\frac{\dot m_{eg}\,c_{p,eg}\,(T_5 - T_{w,in})}{c_{p,w}\,(T_{set} - T_{w,in})} \]
-        <p style="font-size:.92rem;color:var(--text-faint)">
-          A water buffer adds thermal inertia on the user side, stabilising the supply
-          temperature around the set-point (60 °C).
-        </p>
-      </div>
-
-      <!-- Block 8: Control -->
-      <div class="block">
-        <div class="block__head">
-          <span class="block__num">8</span>
-          <h3 class="block__title" style="margin:0">Control system</h3>
+          <span class="block__num">9</span>
+          <h3 class="block__title" style="margin:0">Fuel control system</h3>
           <span class="block__badge">Logic core</span>
         </div>
         <p>
-          The control tracks the requested power while keeping the machine safe and efficient.
-          It is organised in three levels.
+          The governor is designed to minimise the error between the current shaft speed and the
+          reference speed \(n_{ref}\) set by the optimal-speed schedule (see below) at a given
+          load. The output of the PI controller is saturated between a minimum and a maximum
+          allowed fuel flow, computed dynamically from the recuperator cold-side outlet
+          temperature \(T_2''\) and a combustion-chamber energy balance, so that the turbine-inlet
+          temperature stays between its maximum (material limit) and its minimum
+          (combustion-chamber stability):
         </p>
-        <h4>a) Optimal-speed schedule</h4>
-        <p>
-          For every power level the shaft speed that <strong>maximises the electrical
-          efficiency</strong> is precomputed, subject to the constraints of surge margin,
-          preserved choking, speed limits and maximum turbine-inlet temperature:
-        </p>
-        \[ n_{ref}(P_{el}) = \arg\max_{n}\ \eta_{el}
-           \quad \text{s.t.}\quad
-           \text{surge},\ \beta \ge \beta_{crit},\ n \in [n_{min}, n_{max}],\ T_3 \le T_{3,max} \]
-        <div class="sim-note">
-          <strong>Simulink implementation.</strong> The schedule is computed offline at
-          initialisation (function <code>computeSpeedSchedule</code>) and implemented at runtime
-          as a <strong>1-D lookup</strong> \(P_{el}\rightarrow n_{ref}\), fast to evaluate at
-          every step.
-        </div>
-        <h4>b) Speed/power governor</h4>
-        <p>
-          A governor acts on the fuel flow to bring the speed to \(n_{ref}\); a
-          <strong>rate limiter</strong> on the load request imposes ramps compatible with the
-          thermo-mechanical dynamics, avoiding over/under-speed.
-        </p>
-        <h4>c) Protections and load shedding</h4>
-        <p>
-          When the shaft droops (\(n < n_{ref}\)) and the fuel is at its dynamic ceiling, a
-          limiter proportionally reduces the applied load, just enough to let the machine
-          recover:
-        </p>
-        \[ P_{shed} = K \cdot s \cdot \max\!\bigl(0,\ (n_{ref} - n) - \text{DZ}\bigr) \]
-        <div class="sim-note">
-          <strong>Simulink implementation.</strong> The term is purely proportional (no
-          integral or derivative action), so it adds no phase lag and does not trigger
-          oscillations; it is subtracted from the request <em>before</em> the rate limiter.
-          The protection is completed by the maximum turbine-temperature limit (max-fuel) and
-          the minimum-load clamp (turndown).
-        </div>
+        \[ \dot m_{f,\max} = \max\!\left(0,\ \dot m_x\,\frac{c_{p,eg}\,T_{3,\max} - c_{p,\text{air}}\,T_2''}{LHV\,\eta_{comb} - c_{p,eg}\,T_{3,\max}}\right) \]
+        \[ \dot m_{f,\min} = \max\!\left(0,\ \dot m_x\,\frac{c_{p,eg}\,T_{3,\min} - c_{p,\text{air}}\,T_2''}{LHV\,\eta_{comb} - c_{p,eg}\,T_{3,\min}}\right) \]
       </div>
+
+      <!-- Block 10: Heat-recovery boiler -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">10</span>
+          <h3 class="block__title" style="margin:0">Heat-recovery boiler (HRB)</h3>
+        </div>
+        <p>
+          Because the plant runs in electrical priority, the exhaust-gas temperature and flow
+          reaching the boiler are an <strong>uncontrolled input</strong>. The heat exchanger
+          itself is a very simple model with constant effectiveness. Between its outlet and the
+          supply line a small <strong>buffer tank</strong> absorbs the flow fluctuations: the
+          water flow rate is regulated by a PI controller whose goal is to keep a constant supply
+          temperature of 60 °C.
+        </p>
+      </div>
+
+      <!-- Optimal-speed schedule & minimum load (separate section) -->
+      <h3 style="margin-top:36px">Optimal-speed schedule and minimum load</h3>
+      <p>
+        Being a variable-speed machine, at every power level the microturbine can pick the shaft
+        speed that maximises the electrical efficiency. This <strong>optimal-speed schedule</strong>
+        \(n_{ref}(P_{el})\) is computed once at initialisation, by sweeping the feasible operating
+        map and keeping, for each load, the most efficient speed that still respects the surge
+        margin, the turbine choking, the speed limits and the maximum turbine-inlet temperature.
+        At runtime it is used as a simple 1-D lookup, fast to evaluate at every step.
+      </p>
+      <p>
+        The <strong>minimum deliverable load</strong> (turndown) is found by running many
+        closed-loop simulations in parallel: for several ambient temperatures the load is
+        progressively lowered until the model can no longer stay stable. The resulting map is
+        stored in <code>turndownMap.mat</code> and reused as-is, since recomputing it is fairly
+        long and requires the Parallel Computing add-on. If the input data are changed, deleting
+        <code>turndownMap.mat</code> triggers a fresh calculation on the next run.
+      </p>
+
+      <p style="font-size:.86rem;color:var(--text-faint);margin-top:30px;border-top:1px solid var(--border);padding-top:16px">
+        <strong>Reference.</strong> Compressor map from: D. F. Blanco-Patiño, J. Niño-Navia,
+        J. I. Garcia-Sepulveda, C. Nieto-Londoño, "Performance prediction of a centrifugal
+        compressor for a cogeneration microturbine", <em>International Journal of Thermofluids</em>
+        17 (2023) 100272 (open access, CC BY-NC-ND).
+        <a href="https://doi.org/10.1016/j.ijft.2022.100272" target="_blank" rel="noopener">doi.org/10.1016/j.ijft.2022.100272</a>
+      </p>
     </section>
 
     <!-- =================================================================
