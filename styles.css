@@ -112,6 +112,9 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; }
 .hero__title .accent { color: var(--accent); }
 .hero__lead { font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--text-soft); max-width: 640px; margin: 0 0 36px; }
 .hero__actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.hero__about { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); max-width: 680px; }
+.hero__about-title { font-size: 1.35rem; letter-spacing: -.01em; margin-bottom: 12px; }
+.hero__about p { color: var(--text-soft); font-size: 1.05rem; margin: 0; }
 
 /* ===================================================================
    Sezioni generiche
@@ -185,15 +188,15 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; }
 .project-card__links a { font-weight: 600; font-size: .92rem; color: var(--accent-strong); transition: color .2s ease; }
 .project-card__links a:hover { color: var(--text); }
 
-/* Thumbnail con illustrazione (girante compressore) al posto della scritta */
-.project-card__thumb--compressor {
-  background:
-    url('assets/compressor-impeller.svg') center / 138px no-repeat,
-    radial-gradient(120% 120% at 100% 0%, var(--accent-soft) 0%, transparent 55%),
-    linear-gradient(135deg, #eef2f4 0%, #e3e9ec 100%);
+/* Thumbnail con lo schema d'impianto al posto della scritta */
+.project-card__thumb--diagram {
+  background: #fff url('projects/microturbine/assets/plant-diagram.png') center / contain no-repeat;
+  background-origin: content-box;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
 }
-.project-card__thumb--compressor::after { content: none; }
-.project-card:hover .project-card__thumb--compressor { background-size: 148px, auto, auto; transition: background-size .25s ease; }
+.project-card__thumb--diagram::before,
+.project-card__thumb--diagram::after { content: none; }
 
 /* ===================================================================
    Chi sono
