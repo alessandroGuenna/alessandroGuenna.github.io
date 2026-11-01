@@ -11,3 +11,8 @@
 # File di sistema
 Thumbs.db
 .DS_Store
+
+# Cartella di lavoro con le indicazioni per la pagina (non si pubblica)
+projects/thermal collector/
+Part1.md
+Notes about part 2.txt

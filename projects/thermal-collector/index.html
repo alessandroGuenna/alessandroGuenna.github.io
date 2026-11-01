@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solar thermal collector plant for DHW — Alessandro Guenna</title>
+  <meta name="description" content="Python model of a Domestic Hot Water plant for a single-family house using solar thermal collectors: yearly simulation at 1 minute resolution with financial and performance indicators, available as a web app." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+
+  <!-- MathJax for equations -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+
+  <style>
+    /* ===== Project-page specific styles ===== */
+    .proj { max-width: 900px; }
+
+    .proj-hero { padding: 56px 0 28px; }
+    .proj-hero__back { display: inline-block; color: var(--text-soft); font-weight: 500; font-size: .92rem; margin-bottom: 22px; }
+    .proj-hero__back:hover { color: var(--accent-strong); }
+    .proj-hero__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .proj-hero__title { font-size: clamp(1.9rem, 4.5vw, 2.9rem); letter-spacing: -.02em; margin-bottom: 16px; }
+    .proj-hero__lead { font-size: 1.12rem; color: var(--text-soft); margin: 0 0 16px; }
+    .proj-hero__actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+
+    /* Project sections */
+    .proj-section { padding: 46px 0 8px; }
+    .proj-section__title { font-size: clamp(1.5rem, 3.2vw, 2.05rem); letter-spacing: -.02em; margin: 0 0 8px; }
+    .proj h3 { font-family: var(--font-display); font-size: 1.25rem; margin: 32px 0 10px; letter-spacing: -.01em; }
+    .proj h4 { font-family: var(--font-display); font-size: 1.05rem; margin: 22px 0 6px; }
+    .proj p { color: var(--text-soft); }
+    .proj ul, .proj ol { color: var(--text-soft); padding-left: 20px; }
+    .proj ul li, .proj ol li { margin: 8px 0; }
+    .proj ol li { margin-bottom: 22px; }
+    .proj-link { color: var(--accent-strong); font-weight: 500; }
+    .proj-link:hover { color: var(--text); }
+    .nowrap { white-space: nowrap; }
+
+    /* Figures */
+    figure { margin: 24px 0; }
+    figure img { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; display: block; }
+    figcaption { color: var(--text-faint); font-size: .88rem; margin-top: 10px; text-align: center; }
+    .fig-plot { margin: 14px 0 0; }
+    .fig-app { max-width: 760px; margin-left: auto; margin-right: auto; }
+
+    /* Model block cards */
+    .block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin: 18px 0; }
+    .block__head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .block__num { flex: none; width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: #fff; font-family: var(--font-display); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+    .proj .block__title { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin: 0; }
+    .block p { margin: 8px 0; font-size: .97rem; }
+    .block ul { font-size: .97rem; }
+    .note { font-size: .92rem; color: var(--text-faint) !important; }
+
+    /* Long equations scroll inside their own box on small screens */
+    mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+    .references { font-size: .86rem; color: var(--text-faint); margin-top: 40px; border-top: 1px solid var(--border); padding-top: 18px; }
+    .references p { color: var(--text-faint); margin: 8px 0; }
+    .references a { color: var(--accent-strong); }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="../../index.html" class="nav__brand">AG<span class="nav__brand-dot">.</span></a>
+
+      <button class="nav__toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav__links">
+        <li><a href="../../index.html#projects">Projects</a></li>
+        <li><a href="../../index.html#about">About</a></li>
+        <li><a href="../../index.html#contact">Contact</a></li>
+        <li><a href="https://github.com/alessandroGuenna" target="_blank" rel="noopener" class="nav__github">GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container proj">
+    <!-- ===== HERO ===== -->
+    <section class="proj-hero">
+      <a href="../../index.html#projects" class="proj-hero__back">← Back to projects</a>
+      <div class="proj-hero__tags">
+        <span class="tag">Python</span>
+        <span class="tag">Investment analysis</span>
+      </div>
+      <h1 class="proj-hero__title">Solar thermal collector plant for DHW</h1>
+      <p class="proj-hero__lead">
+        In this project I built a model in Python of a DHW (Domestic Hot Water) plant for a
+        single-family house using solar thermal collectors. The user can personalise the inputs
+        (plant location and specifications, utility prices, average consumption) and check the
+        results: a collection of the most relevant financial and plant performance indicators.
+      </p>
+      <p class="proj-hero__lead">
+        The code is available on GitHub, and a free web app version will be available soon.
+      </p>
+      <div class="proj-hero__actions">
+        <a href="solar-thermal-dhw.zip" class="btn btn--primary" download>Download the project (ZIP)</a>
+        <a href="https://github.com/alessandroGuenna/solar-thermal-dhw" class="btn btn--ghost" target="_blank" rel="noopener">Code on GitHub ↗</a>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         THE APP
+         ================================================================= -->
+    <section class="proj-section">
+      <h2 class="proj-section__title">The app: what it does and how to use it</h2>
+
+      <figure class="fig-app">
+        <img src="assets/schermata_iniziale_app.png" alt="The app at start-up: plant and cost inputs on the left, empty results on the right" />
+      </figure>
+
+      <p>
+        The app layout is essential: inputs on the left and results on the right. The inputs are
+        also split between plant specifications and cost items. Here are some notes:
+      </p>
+      <ul>
+        <li>
+          <strong>Number of modules:</strong> number of modules of flat plate collectors,
+          specifically Kloben FSK 2.0
+          (<a href="assets/scheda_tecnica_pannelli_piani_FSK.pdf" class="proj-link" download="Kloben_FSK_datasheet.pdf">download the data sheet</a>).
+          At the moment it's not possible to select other collector models.
+        </li>
+        <li>
+          <strong>Tank volume:</strong> the volume of the buffer tank, used to store thermal energy
+          in the form of hot water. Its role will be explained in detail in the
+          <a href="#buffer-tank" class="proj-link">model section</a>.
+        </li>
+        <li>
+          <strong>Boiler volume:</strong> while the tank volume is a project design parameter, this
+          is supposed to be the volume of the boiler that the user already has <strong>before</strong>
+          the implementation of the collectors. The user can also select whether it is a gas or an
+          electric boiler (this will have a big impact on the financial analysis).
+        </li>
+        <li>
+          <strong>Module and installation costs:</strong> the plant CAPEX is split into the cost of
+          the modules and the installation cost. The latter is an estimate that includes everything
+          else: labour, piping, pumps, buffer tank...
+        </li>
+        <li>
+          <strong>Gas and electricity prices:</strong> they are assumed to be fixed for the whole
+          lifetime of the plant.
+        </li>
+      </ul>
+
+      <p>Once the user has set the inputs, they can start the simulation by pressing "Run".</p>
+
+      <figure class="fig-app">
+        <img src="assets/schermata_app_conRisultati.png" alt="The app after a run, with NPV, PBP, solar fraction, savings and the plot buttons highlighted" />
+      </figure>
+
+      <p>
+        NPV (Net Present Value), PBP (PayBack Period), solar fraction and annual savings are
+        displayed. Solar fraction is the ratio between the useful solar energy and the load demand
+        or, in other words, how much of the energy necessary to heat up the water has been provided
+        "for free" by the Sun.
+      </p>
+
+      <p>The user can also generate three useful plots:</p>
+      <ol>
+        <li>
+          <strong>Cash flows:</strong> simple and discounted. The simple and discounted PBP are
+          highlighted, if present (it may happen that the PBP falls after the plant lifetime or, for
+          the discounted PBP, is never reached).
+          <figure class="fig-plot">
+            <img src="assets/cash_flows_plot.png" alt="Bar chart of the cumulative simple and discounted cash flows over 20 years, with PBP and discounted PBP markers" />
+          </figure>
+        </li>
+        <li>
+          <strong>Monthly energy demand:</strong> it provides an intuitive visualisation of the solar
+          fraction over the months.
+          <figure class="fig-plot">
+            <img src="assets/monthly_solar_fraction_plot.png" alt="Stacked monthly bars of the energy provided by the Sun and by the boiler" />
+          </figure>
+        </li>
+        <li>
+          <strong>Unmet demand:</strong> this is most important for electric boilers, since gas
+          boilers typically have enough power to avoid this issue. It counts the instances in which
+          the user receives water below the desired temperature, highlighting the cases in which the
+          user receives water colder than 35 °C. The only ways to mitigate this problem are to
+          increase the buffer tank volume, the boiler volume or the boiler power.
+          <figure class="fig-plot">
+            <img src="assets/unmet_demand_plot.png" alt="Histogram of the minutes per year of unmet demand by delivered temperature" />
+          </figure>
+        </li>
+      </ol>
+    </section>
+
+    <!-- =================================================================
+         METHODOLOGY
+         ================================================================= -->
+    <section class="proj-section">
+      <h2 class="proj-section__title">Methodology</h2>
+
+      <p>
+        When the user presses "Run", the program simulates an entire year of operation, with a time
+        resolution of just 1 minute, using weather data (solar radiation and air temperature)
+        corresponding to the user's location, obtained from
+        <a href="https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis_en" class="proj-link" target="_blank" rel="noopener">PVGIS</a>
+        (European Commission, Joint Research Centre) through the
+        <a href="https://pvlib-python.readthedocs.io/" class="proj-link" target="_blank" rel="noopener">pvlib</a>
+        package [1, 2]. This data is based on a multi-year window (2013–2023) and forms a so-called
+        typical meteorological year (TMY), built by selecting the most representative year for each
+        calendar month, since using the data of a single year could introduce a significant error if
+        that year was an outlier.
+      </p>
+
+      <p>
+        The load profile, i.e. the amount of hot water requested over time, is computed using the
+        software
+        <a href="https://www.uni-kassel.de/maschinenbau/en/institute/thermische-energietechnik/fachgebiete/solar-und-anlagentechnik/downloads" class="proj-link" target="_blank" rel="noopener">DHWcalc</a>
+        (version 2.02b, University of Kassel) [3]. Given a mean daily volume, the software randomly
+        places individual draw-offs along the year with a statistical approach, following the flow
+        rate, duration and share of each draw-off category and their probability over the day, the
+        week and the seasons. 15 profiles were generated (from 50 to 400 average l/day, step 25), so
+        the user can choose among these. The
+        <a href="https://github.com/alessandroGuenna/solar-thermal-dhw/blob/main/data/Load%20data/DHW_input.ini" class="proj-link" target="_blank" rel="noopener">configuration file</a>
+        is available and one can check all the settings used to generate the profiles. In general, a
+        reduced hot water consumption in summer is assumed, with 2 weeks of holiday with no
+        consumption at all.
+      </p>
+
+      <p>
+        The cold water temperature \(T_c\) is not a fixed value: it changes day by day and is estimated
+        from the air temperature of the chosen location, with the correlation by Burch and
+        Christensen [4]:
+      </p>
+      \[ T_c = \bigl(\overline{T}_{air} + 6\bigr) + r\,\frac{\Delta T_{max}}{2}\,\sin\bigl[0.986\,(d - 15 - \lambda) - 90\bigr] \]
+      \[ r = 0.4 + 0.01\,\bigl(\overline{T}_{air} - 44\bigr), \qquad \lambda = 35 - \bigl(\overline{T}_{air} - 44\bigr) \]
+      <p class="note">
+        Temperatures are in °F and the angle is in degrees. \(\overline{T}_{air}\) is the annual average
+        air temperature, \(\Delta T_{max}\) the difference between the warmest and the coldest monthly
+        average, \(d\) the day of the year and \(\lambda\) the delay in days with respect to the air
+        temperature. For the default location (Genoa), \(T_c\) ranges from 11.8 °C to 20.6 °C over the
+        year, with an average of <span class="nowrap">16.2 °C</span>.
+      </p>
+
+      <h3 id="plant-model">Plant model</h3>
+      <h4>Layout</h4>
+
+      <figure>
+        <img src="assets/plant_scheme_mod.jpg" alt="Plant scheme: collector loop, heat exchanger, buffer tank loop, boiler and mixer with the temperatures and mass flow rates used in the equations" />
+      </figure>
+
+      <!-- Block 1: Collector -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">1</span>
+          <h4 class="block__title">Collector</h4>
+        </div>
+        <p>
+          The collector is modelled with a lumped parameter model, solved with explicit Euler with a
+          reduced time step (each minute is split into 4 sub-steps, <span class="nowrap">\(\Delta t = 15\) s</span>):
+        </p>
+        \[ \dot Q_{coll} = A\,\bigl[\eta_0\,G_T - a\,(T_2 - T_{air}) - b\,(T_2 - T_{air})^2\bigr] \]
+        \[ T_2^{\,k+1} = T_2^{\,k} + \frac{\Delta t}{C_{th}}\Bigl[\dot Q_{coll} - s_p\,\dot m_F\,c_{p,F}\,\bigl(T_2^{\,k} - T_1\bigr)\Bigr] \]
+        <p class="note">
+          \(G_T\) is the irradiance on the collector plane, \(\eta_0\), \(a\) and \(b\) the optical
+          efficiency and the first and second order loss coefficients of the collector, \(A\) its total
+          area, \(C_{th}\) its thermal capacity and \(s_p\) the pump state (1 = ON, 0 = OFF).
+        </p>
+        <p>
+          The heat transfer fluid used for the collector loop is a mixture of 60% water / 40%
+          propylene glycol by mass.
+        </p>
+      </div>
+
+      <!-- Block 2: Heat exchanger -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">2</span>
+          <h4 class="block__title">Heat exchanger</h4>
+        </div>
+        <p>
+          It is modelled as a quasi-steady counterflow heat exchanger with the
+          \(\varepsilon\)-NTU method, since the 1 minute time step is sufficiently small to ignore the
+          transient effects:
+        </p>
+        \[ C_H = \dot m_F\,c_{p,F}, \qquad C_C = \dot m_H\,c_{p,w}, \qquad
+           NTU = \frac{UA}{C_{min}}, \qquad C_r = \frac{C_{min}}{C_{max}} \]
+        \[ \varepsilon = \frac{1 - e^{-NTU\,(1 - C_r)}}{1 - C_r\,e^{-NTU\,(1 - C_r)}}
+           \quad (C_r < 1), \qquad
+           \varepsilon = \frac{NTU}{1 + NTU} \quad (C_r = 1) \]
+        \[ \dot Q_{hx} = \varepsilon\,C_{min}\,(T_2 - T_3), \qquad
+           T_1 = T_2 - \frac{\dot Q_{hx}}{C_H}, \qquad
+           T_4 = T_3 + \frac{\dot Q_{hx}}{C_C} \]
+        <p class="note">
+          Both loops work at a constant flow rate, so \(\varepsilon\) is constant. They are sized to
+          have the same heat capacity rate, so in practice \(C_r = 1\).
+        </p>
+      </div>
+
+      <!-- Block 3: Buffer tank -->
+      <div class="block" id="buffer-tank">
+        <div class="block__head">
+          <span class="block__num">3</span>
+          <h4 class="block__title">Buffer tank</h4>
+        </div>
+        <p>
+          It is a well-mixed vessel, with constant mass as the heat exchanger is a closed loop and all
+          the water drawn by the boiler is instantly replaced by the cold water supply. Again it is
+          solved with explicit Euler <span class="nowrap">(\(\Delta t = 1\) min)</span>, since its characteristic time
+          constant is the slowest of the entire plant.
+        </p>
+        \[ T_3^{\,k+1} = T_3^{\,k} + \frac{\Delta t}{M\,c_{p,w}}\Bigl[
+           s_p\,\dot m_H\,c_{p,w}\,\bigl(T_4 - T_3^{\,k}\bigr)
+           + \dot m_{C,tank}\,c_{p,w}\,\bigl(T_c - T_3^{\,k}\bigr)
+           - UA_{tank}\,\bigl(T_3^{\,k} - T_{amb}\bigr)\Bigr] \]
+        <p class="note">
+          \(M\) is the mass of water in the tank, \(s_p\) the pump state (1 = ON, 0 = OFF),
+          \(\dot m_{C,tank} = \dot m_B\) the cold water replacing what the boiler draws, \(T_c\) the
+          cold water temperature, \(UA_{tank}\) the heat loss coefficient of the tank and \(T_{amb}\)
+          the temperature of the room where it is installed.
+        </p>
+      </div>
+
+      <!-- Block 4: Pump controller -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">4</span>
+          <h4 class="block__title">Pump controller logic</h4>
+        </div>
+        <p>
+          The pumps are both fixed speed and therefore work only in ON/OFF mode, controlled by a relay
+          with a dead band to avoid constantly switching ON and OFF. There are two conditions to check.
+        </p>
+        <p>
+          First, the heat transfer fluid in the collector must be hot enough to actually heat up the
+          tank: especially at night, if the pump stayed on, the heat flow direction would reverse and
+          the collector would dissipate the tank's heat to the outside. The pumps therefore switch on
+          when <span class="nowrap">\(T_2 > T_3 + 4\) °C</span> and off when <span class="nowrap">\(T_2 < T_3 + 2\) °C</span>.
+        </p>
+        <p>
+          Moreover, a protection logic is implemented to prevent situations in which the tank would
+          reach temperatures close to the boiling point, for safety reasons: the pumps stop when the
+          tank exceeds 75 °C and can restart only once it is back below 72 °C.
+        </p>
+      </div>
+
+      <!-- Block 5: Boiler -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">5</span>
+          <h4 class="block__title">Boiler</h4>
+        </div>
+        <p>
+          It is modelled in the same way as the buffer tank, but with an additional heat source, also
+          controlled by a relay to maintain its internal temperature around 60 °C (ON below 57 °C, OFF
+          above 63 °C).
+        </p>
+      </div>
+
+      <!-- Block 6: Mixer -->
+      <div class="block">
+        <div class="block__head">
+          <span class="block__num">6</span>
+          <h4 class="block__title">Mixer</h4>
+        </div>
+        <p>
+          Since the boiler is kept at around 60 °C and hot water is requested at 45 °C, the water from
+          the boiler is mixed with cold water. The flow rate drawn from the boiler to deliver the
+          requested flow \(\dot m_u\) at temperature \(T_u\) is:
+        </p>
+        \[ \dot m_B = \dot m_u\,\frac{T_u - T_c}{T_B - T_c}, \qquad
+           \dot m_{C,mix} = \dot m_u - \dot m_B \]
+        <p>
+          If the boiler is too cold (\(T_B < T_u\)), the whole flow comes from the boiler
+          (\(\dot m_B = \dot m_u\)): the user receives water at \(T_B\) and that minute is counted as
+          unmet demand.
+        </p>
+      </div>
+
+      <div class="references">
+        <p><strong>References</strong></p>
+        <p>
+          [1] K. S. Anderson, C. W. Hansen, W. F. Holmgren, A. R. Jensen, M. A. Mikofski, A. Driesse,
+          "pvlib python: 2023 project update", <em>Journal of Open Source Software</em> 8(92), 5994, 2023.
+          <a href="https://doi.org/10.21105/joss.05994" target="_blank" rel="noopener">doi.org/10.21105/joss.05994</a>
+        </p>
+        <p>
+          [2] A. R. Jensen et al., "pvlib iotools: Open-source Python functions for seamless access to
+          solar irradiance data", <em>Solar Energy</em> 266, 112092, 2023.
+          <a href="https://doi.org/10.1016/j.solener.2023.112092" target="_blank" rel="noopener">doi.org/10.1016/j.solener.2023.112092</a>
+        </p>
+        <p>
+          [3] U. Jordan, K. Vajen, "DHWcalc: Program to generate domestic hot water profiles with
+          statistical means for user defined conditions", <em>Proc. ISES Solar World Congress</em>,
+          Orlando, 2005.
+        </p>
+        <p>
+          [4] J. Burch, C. Christensen, "Towards development of an algorithm for mains water
+          temperature", National Renewable Energy Laboratory (NREL), 2007.
+          <a href="https://www.osti.gov/biblio/981988" target="_blank" rel="noopener">osti.gov/biblio/981988</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <span>© <span id="year"></span> Alessandro Guenna</span>
+      <a href="../../index.html" class="site-footer__top">← Home</a>
+    </div>
+  </footer>
+
+  <script src="../../script.js"></script>
+</body>
+</html>

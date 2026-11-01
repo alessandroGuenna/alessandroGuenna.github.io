@@ -197,6 +197,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; }
 }
 .project-card__thumb--diagram::before,
 .project-card__thumb--diagram::after { content: none; }
+.project-card__thumb--dhw { background-image: url('projects/thermal-collector/assets/plant_scheme_thumb.jpg'); }
 
 /* ===================================================================
    Chi sono
